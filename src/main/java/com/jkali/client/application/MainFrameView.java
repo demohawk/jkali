@@ -453,28 +453,28 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
             return;
         }
         changingPage = true;
-        if (swapViews) {
-            // Do stuff on the model !
-
-            getModel().sendWave(ShowModelWaveBuilder.create()
-                    .parentNode(pageArea)
-                    .modelClass(ManualPageModel.class)
-                    .build());
-            // ShowModelWaveBuilder.create().modelClass(ManualPageModel.class).parentNode(pageArea).createdNode(StackPane);
-            //pageArea.getChildren().add(getModel().getInnerModel(MenuPageInnerModels.Manual).getRootNode());
-//            if (view == null) {
-//                view = new Region(); // todo temp workaround
-//            }            // replace view in pageArea if new
-//            if (force || view != currentPageView) {
-//                for (Node child : pageArea.getChildren()) {
-//                    if (child instanceof SamplePage.SamplePageView) {
-//                        ((SamplePage.SamplePageView) child).stop();
-//                    }
-//                }
-//                pageArea.getChildren().setAll(view);
-//                currentPageView = view;
-//            }
-        }
+//        if (swapViews) {
+//            // Do stuff on the model !
+//
+//            getModel().sendWave(ShowModelWaveBuilder.create()
+//                    .parentNode(pageArea)
+//                    .modelClass(ManualPageModel.class)
+//                    .build());
+//            // ShowModelWaveBuilder.create().modelClass(ManualPageModel.class).parentNode(pageArea).createdNode(StackPane);
+//            //pageArea.getChildren().add(getModel().getInnerModel(MenuPageInnerModels.Manual).getRootNode());
+////            if (view == null) {
+////                view = new Region(); // todo temp workaround
+////            }            // replace view in pageArea if new
+////            if (force || view != currentPageView) {
+////                for (Node child : pageArea.getChildren()) {
+////                    if (child instanceof SamplePage.SamplePageView) {
+////                        ((SamplePage.SamplePageView) child).stop();
+////                    }
+////                }
+////                pageArea.getChildren().setAll(view);
+////                currentPageView = view;
+////            }
+//        }
 
     }
 

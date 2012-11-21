@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ul>
+    <li>
+        <a href="javascript:void(0)">公司基础数据</a>
+        <ul>
+            <li>
+                <a id="48" href="proplan/ship-type.action">船型管理</a>
+            </li>     
+        </ul>
+    </li>
+
+</ul>
+
