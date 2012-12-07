@@ -81,7 +81,7 @@ public class MainFrameModel  extends AbstractModel<MainFrameModel, MainFrameView
 
     @Override
     protected void customInitializeInnerModels() {
-        getInnerModel(MenuPageInnerModels.Manual);
+        
         
     }
 

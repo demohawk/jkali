@@ -1,5 +1,10 @@
 package com.jkali.core.util;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,6 +12,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
+
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
 
 
 public class UTIL {
@@ -933,4 +941,23 @@ public class UTIL {
 		}
 
 	}
+	
+	 public static InputStream getImageStream(BufferedImage image){ 
+         InputStream is = null; 
+
+         ByteArrayOutputStream bs = new ByteArrayOutputStream();  
+          
+         ImageOutputStream imOut; 
+         try { 
+             imOut = ImageIO.createImageOutputStream(bs); 
+              
+             ImageIO.write(image, "png",imOut); 
+              
+             is= new ByteArrayInputStream(bs.toByteArray()); 
+              
+         } catch (IOException e) { 
+             e.printStackTrace(); 
+         }  
+         return is; 
+     } 
 }

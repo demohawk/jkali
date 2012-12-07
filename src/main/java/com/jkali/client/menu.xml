@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ul>
     <li>
-        <a href="javascript:void(0)">公司基础数据</a>
+        <a id="1" code="10" href="javascript:void(0)" className="ManualPageModel">公司基础数据</a>
         <ul>
             <li>
-                <a id="48" href="proplan/ship-type.action">船型管理</a>
-            </li>     
+                <a id="12" code="100" href="proplan/ship-type.action" className="com.jkali.client.ui.manual.ManualPageModel" >船型管理</a>
+            </li>
+            <li>
+                <a id="13" code="110" href="proplan/ship-type.action" className="com.jkali.client.ui.manual.ManualPageModel" >线表模型</a>
+            </li>      
         </ul>
     </li>
 

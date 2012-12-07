@@ -174,9 +174,9 @@ public class ProxyDialog extends VBox {
 
         getChildren().addAll(explPane, options, bottomBar);
     }
-
+    public static final String DEFAULT_DOCS_URL = "http://docs.oracle.com/javafx/2/api/";
     public void getDocsInBackground(final boolean showProxyDialogOnFail, final Runnable callBackOnSuccess) {
-        final FetchDocListTask task = new FetchDocListTask(Ensemble2.getEnsemble2().getDocsUrl());
+        final FetchDocListTask task = new FetchDocListTask(DEFAULT_DOCS_URL);
         task.stateProperty().addListener(new ChangeListener<Worker.State>() {
             public void changed(ObservableValue<? extends Worker.State> ov, Worker.State t, Worker.State newState) {
                 if (newState == Worker.State.SUCCEEDED) {

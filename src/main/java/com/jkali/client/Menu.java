@@ -12,22 +12,31 @@ import org.jrebirth.core.wave.Wave;
  * @author Paul
  */
 public class Menu extends TreeItem<String> {
-      private String id;
+ 
+
+
+	private String id;
       private String name;
       private String url;
       private String code;
       private String className;
       private Wave wave;
       
-      public Menu(String id,String name,String url){
+      public Menu(String id,String name,String url,String className,String code){
           this.id =id;
           this.name=name;
           this.url=url;  
-          setValue(name);
+          this.code=code;
+          this.className=className;
+          setValue("("+code+")"+name);
       }
       
 
     public String getName() {
         return getValue();
     }
+    
+    public String getClassName() {
+		return className;
+	}
 }

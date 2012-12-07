@@ -55,7 +55,7 @@ public class TestJkali extends AbstractApplication<StackPane>{
 */
     @Override
     public Class<? extends Model> getFirstModelClass() {
-        return ManualPageModel.class;
+        return MainFrameModel.class;
     }
 
     /**

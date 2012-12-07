@@ -4,6 +4,7 @@
  */
 package com.jkali.client;
 
+import com.jkali.client.application.Function;
 import com.jkali.client.application.MainFrameModel;
 import com.jkali.client.page.GridPageModel;
 import com.jkali.client.ui.manual.ManualPageModel;
@@ -32,6 +33,8 @@ public class MainFrame extends AbstractApplication<StackPane>{
     
     private static boolean isApplet = false;
     private static MainFrame mainFrame;
+
+    private static List<Function> history = new ArrayList<Function>();
 
 
     
@@ -126,6 +129,14 @@ public class MainFrame extends AbstractApplication<StackPane>{
     protected List<FontEnum> getFontToPreload() {
         return Collections.emptyList();
     }
+
+	public static List<Function> getHistory() {
+		return history;
+	}
+
+	public static void setHistory(List<Function> history) {
+		MainFrame.history = history;
+	}
     
    
 }

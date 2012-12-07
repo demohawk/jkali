@@ -63,8 +63,10 @@ public class MenuTreeModel {
                         if (leafElement.getName().equals("a")) {
                             String id = leafElement.getAttributeValue("id");
                             String name = leafElement.getText();
-                            String url = leafElement.getAttributeValue("url");
-                            Menu menu = new Menu(id, name, url);
+                            String url = leafElement.getAttributeValue("href");
+                            String code = leafElement.getAttributeValue("code");
+                            String className = leafElement.getAttributeValue("className");
+                            Menu menu = new Menu(id, name, url,className,code);
                             itemtemp= menu;
                             parent.getChildren().add(menu);
                         } else if (leafElement.getName().equals("ul")) {
@@ -78,7 +80,7 @@ public class MenuTreeModel {
     
     
     public Menu getMenuTreeItem() {
-        Menu root = new Menu("root","","");
+        Menu root = new Menu("0","菜单根","javascript:void(0)","CLASS","0");
         SAXBuilder sb = new SAXBuilder();
         try {
             Document doc = sb.build(stream);

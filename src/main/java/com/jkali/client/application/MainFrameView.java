@@ -9,6 +9,10 @@ import com.jkali.client.MainFrame;
 import com.jkali.client.Menu;
 import com.jkali.client.MenuTreeModel;
 import com.jkali.client.ui.manual.ManualPageModel;
+import com.jkali.core.util.UTIL;
+
+
+
 import ensemble.Page;
 import ensemble.Pages;
 import ensemble.config.ProxyDialog;
@@ -17,10 +21,25 @@ import ensemble.controls.SearchBox;
 import ensemble.controls.WindowButtons;
 import ensemble.controls.WindowResizeButton;
 import ensemble.pages.SamplePage;
+
+import java.awt.AWTException;
+import java.awt.Color;
+import java.awt.Robot;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
+
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -32,6 +51,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.DepthTest;
 import javafx.scene.Node;
@@ -40,6 +60,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -47,6 +69,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -56,6 +79,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
+
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -63,8 +88,11 @@ import netscape.javascript.JSObject;
 import org.jrebirth.core.command.basic.ShowModelWaveBuilder;
 import org.jrebirth.core.exception.CoreException;
 import org.jrebirth.core.ui.DefaultView;
+import org.jrebirth.core.ui.Model;
 
 /**
+ *Main Frame View
+ *
  *
  * @author Paul
  */
@@ -76,15 +104,15 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
     private BorderPane root;
     private ToolBar toolBar;
     private SplitPane splitPane;
-    private TreeView menuTree;
+    private TreeView<Menu> menuTree;
     private Pane pageArea;
     private Pages pages;
     private Menu currentMenu;
     private String currentPagePath;
     private Node currentPageView;
     private BreadcrumbBar breadcrumbBar;
-    private Stack<Menu> history = new Stack<Menu>();
-    private Stack<Menu> forwardHistory = new Stack<Menu>();
+
+
     private boolean changingPage = false;
     private double mouseDragOffsetX = 0;
     private double mouseDragOffsetY = 0;
@@ -93,8 +121,9 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
     private StackPane modalDimmer;
     private ProxyDialog proxyDialog;
     private ToolBar pageToolBar;
-    private JSObject browser;
-    private String docsUrl;
+
+
+    private WritableImage snapshot;
 
     /**
      * Default Constructor.
@@ -150,15 +179,22 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
 //        }
         // create modal dimmer, to dim screen when showing modal dialogs
         modalDimmer = new StackPane();
-        modalDimmer.setId("ModalDimmer");
-        modalDimmer.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent t) {
-                t.consume();
-                hideModalMessage();
-            }
-        });
+//        modalDimmer.setOpacity(1);
+//        modalDimmer.setId("ModalDimmer");
+        modalDimmer.setStyle("-fx-background-color: DAE6F3;");
+        modalDimmer.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+//        modalDimmer.setOnMouseClicked(new EventHandler<MouseEvent>() {
+//            public void handle(MouseEvent t) {
+//                t.consume();
+//                hideModalMessage();
+//            }
+//        });
+        modalDimmer.setAlignment(Pos.BASELINE_CENTER);
         modalDimmer.setVisible(false);
-        getRootNode().getChildren().add(modalDimmer);
+//        root.setBottom(modalDimmer);
+
+
 //        // create main toolbar
 
         toolBar = new ToolBar();
@@ -177,6 +213,12 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
         newButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+            	System.err.println("show message..");
+                proxyDialog = new ProxyDialog(stage, pages);
+                proxyDialog.loadSettings();
+                proxyDialog.getDocsInBackground(true,null);
+ 
+            	showModalMessage(proxyDialog);
             }
         });
         toolBar.getItems().add(newButton);
@@ -243,18 +285,32 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
         FlowPane flow = new FlowPane();
         flow.setId("page-tree-toolbar");
         flow.setPadding(new Insets(5, 0, 5, 0));
-        flow.setVgap(3);
-        flow.setHgap(3);
+        flow.setVgap(1);
+        flow.setHgap(1);
         flow.setPrefWrapLength(90); // preferred width allows for two columns
         flow.setStyle("-fx-background-color: DAE6F3;");
        
         ImageView pages[] = new ImageView[9];
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 1; i++) {
             pages[i] = new ImageView(
                     new Image(MainFrame.class.getResourceAsStream(
                     "images/icon-48x48.png")));
-            
-            flow.getChildren().add(pages[i]);
+            Button button = new Button();
+            button.setGraphic(pages[i]);
+            button.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                	System.err.println("show message..");
+                	HBox box = new HBox();
+                	for(Function fun:MainFrame.getHistory()){
+                	snapshot = scene.snapshot(null);
+                	box.getChildren().add(new ImageView(new Image(UTIL.getImageStream(fun.image))));
+                	
+//                	showModalMessage(new Button("xxxxxxdd"));
+                	}
+                	showModalMessage(box);
+                }
+            });
+            flow.getChildren().add(button);
         }
 
 
@@ -313,7 +369,7 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
             settingsButton.setGraphic(new ImageView(new Image(MainFrame.class.getResourceAsStream("images/settings.png"))));
             settingsButton.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent event) {
-                    showProxyDialog();
+
                 }
             });
             settingsButton.setMaxHeight(Double.MAX_VALUE);
@@ -348,6 +404,7 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
         windowResizeButton.setManaged(false);
         this.root.getChildren().add(windowResizeButton);
         getRootNode().getChildren().add(root);
+        getRootNode().getChildren().add(modalDimmer);
 
     }
 
@@ -358,10 +415,12 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
      * @param message
      */
     public void showModalMessage(Node message) {
+
         modalDimmer.getChildren().add(message);
         modalDimmer.setOpacity(0);
         modalDimmer.setVisible(true);
         modalDimmer.setCache(true);
+        
         TimelineBuilder.create().keyFrames(
                 new KeyFrame(Duration.seconds(1),
                 new EventHandler<ActionEvent>() {
@@ -445,36 +504,47 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
      * @param force When true reload page if page is current page
      * @param swapViews If view should be swapped to new page
      */
-    private void goToPage(Menu page, boolean addHistory, boolean force, boolean swapViews) {
-        if (page == null) {
+    private void goToPage(Menu menu, boolean addHistory, boolean force, boolean swapViews) {
+        if (menu == null) {
             return;
         }
-        if (!force && page == currentMenu) {
+        if (!force && menu == currentMenu) {
             return;
         }
         changingPage = true;
-//        if (swapViews) {
-//            // Do stuff on the model !
-//
-//            getModel().sendWave(ShowModelWaveBuilder.create()
-//                    .parentNode(pageArea)
-//                    .modelClass(ManualPageModel.class)
-//                    .build());
-//            // ShowModelWaveBuilder.create().modelClass(ManualPageModel.class).parentNode(pageArea).createdNode(StackPane);
-//            //pageArea.getChildren().add(getModel().getInnerModel(MenuPageInnerModels.Manual).getRootNode());
-////            if (view == null) {
-////                view = new Region(); // todo temp workaround
-////            }            // replace view in pageArea if new
-////            if (force || view != currentPageView) {
-////                for (Node child : pageArea.getChildren()) {
-////                    if (child instanceof SamplePage.SamplePageView) {
-////                        ((SamplePage.SamplePageView) child).stop();
-////                    }
-////                }
-////                pageArea.getChildren().setAll(view);
-////                currentPageView = view;
-////            }
-//        }
+        if (swapViews) {
+            // Do stuff on the model !
+        	String uuid = UUID.randomUUID().toString();
+        	
+   
+
+        	try {
+        		Function function = new Function();
+				function.setUUID(uuid);
+				function.setMenu(menu);
+				
+				function.UUID=uuid;
+				function.menu=menu;
+				getModel().sendWave(ShowModelWaveBuilder.create()
+				        .childrenPlaceHolder(pageArea.getChildren()).keyPart(function)
+				        .modelClass((Class<Model>)Class.forName(menu.getClassName()))
+				        .build());
+		
+				
+
+				
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+     // done
+        changingPage = false; 
+            
+  
+            //getModel().getLocalFacade().retrieve(ManualPageModel.class, "234")
+
+      
 
     }
 
@@ -488,40 +558,6 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
         return fromForwardOrBackButton;
     }
 
-    /**
-     * Show the dialog for setting proxy to the user
-     */
-    public void showProxyDialog() {
-        showModalMessage(proxyDialog);
-    }
-
-    /**
-     * Fetch the current hash location from the browser via JavaScript
-     *
-     * @return Current browsers hash location
-     */
-    private String getBrowserHashLocation() {
-        String hashLoc = null;
-        try {
-            hashLoc = (String) browser.eval("window.location.hash");
-        } catch (Exception e) {
-            try {
-                System.out.println("Warning failed to get browser location, retrying...");
-                hashLoc = (String) browser.eval("window.location.hash");
-            } catch (Exception e2) {
-                e2.printStackTrace();
-            }
-        }
-        // remove #
-        if (hashLoc != null) {
-            if (hashLoc.length() == 0) {
-                hashLoc = null;
-            } else {
-                hashLoc = hashLoc.substring(1);
-            }
-        }
-        return hashLoc;
-    }
 
     /**
      * Code responsible for creating the CheckBoxTreeView
@@ -561,15 +597,30 @@ public final class MainFrameView extends DefaultView<MainFrameModel, StackPane, 
         flow.setHgap(4);
         flow.setPrefWrapLength(170); // preferred width allows for two columns
         flow.setStyle("-fx-background-color: DAE6F3;");
-
+        
         ImageView pages[] = new ImageView[8];
         for (int i = 0; i < 8; i++) {
             pages[i] = new ImageView(
                     new Image(MainFrame.class.getResourceAsStream(
                     "images/icon-48x48.png")));
-            flow.getChildren().add(pages[i]);
+            Button button = new Button();
+            button.setGraphic(pages[i]);
+            button.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                	System.err.println("show message..");
+                	showModalMessage(new ImageView(snapshot));
+                }
+            });
+            flow.getChildren().add(button);
         }
 
         return flow;
     }
+    
+   
+    
+
+
+    
+   
 }
